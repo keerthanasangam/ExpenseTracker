@@ -1,0 +1,65 @@
+<html>
+<head>
+    <title>Expense Tracker</title>
+    <!-- CSS file linking -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+     <header>  <!--  we just used this for our convenience to apply css properties  -->
+        <h1>Expense Tracker</h1>
+        <p>Track your spending easily</p>
+    </header>
+
+    <!-- Balance Display -->
+    <section class="balance"> 
+        <h2>Available Balance</h2>
+        <h1 id="balance">₹0</h1><!--this is 1st line in js-->
+    </section>
+
+    <!--section-->
+<section class="set-balance">
+    <h2>Set Your Balance</h2>
+
+    <form id="balance-form"> <!--this is 3rd line inn js-->
+        <div class="form-control">
+            <label for="initial-balance">Enter Balance</label>
+            <input
+                type="number"
+                id="initial-balance"
+                placeholder="Enter amount"
+                required>
+        </div>
+
+        <button type="submit" class="btn">Set Balance</button>
+        <button type="button" id="reset-btn" class="btn reset-btn"> Reset Balance </button>
+    </form>
+</section>
+    <!-- Add Spend -->
+    <section class="add-transaction">
+        <h2>Add New Spend</h2>
+        <form id="transaction-form"> <!--this is 4th line in js-->
+            <div class="form-control">
+                <label for="text">Title</label>
+                <input type="text" id="text" placeholder="What did you spend on?" required>
+                <label for="amount">Spent Amount</label>
+                <input type="number" id="amount" placeholder="Enter amount" required>
+            </div>
+            <button type="submit" class="btn">Add Spend</button>
+        </form>
+    </section>
+
+    <!-- History -->
+    <section class="history">
+        <h2>Spending History</h2>'
+        <ul id="list" class="list"></ul> <!--this is 2nd line inn js-->
+    </section>
+    
+</div>
+<!-- JS -->
+<link rel="stylesheet" href="./style.css">
+<script src="./scripts.js"></script>
+</body>
+</html>
