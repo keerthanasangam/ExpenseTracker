@@ -3,6 +3,7 @@
 // Balance & history
 const balanceEl = document.getElementById("balance");
 const list = document.getElementById("list");
+const emptyState = document.getElementById("empty-state");
 
 // Forms
 const balanceForm = document.getElementById("balance-form");
@@ -13,77 +14,131 @@ const initialBalanceInput = document.getElementById("initial-balance");
 const textInput = document.getElementById("text");
 const amountInput = document.getElementById("amount");
 
-// Buttons
+// Buttons & Toggles
 const resetBtn = document.getElementById("reset-btn");
 const themeToggle = document.getElementById("theme-toggle");
 
 // ================= DATA (STATE) =================
-             
-//. Load balance
-// without this Balance wl not be taken
-let balance = localStorage.getItem("balance") 
-    ? Number(localStorage.getItem("balance")) //local storage treats eveything as string so we used "number" ti conver the balance
+
+// Load balance
+let balance = localStorage.getItem("balance")
+    ? Number(localStorage.getItem("balance"))
     : 0;
 
-
 // Load history
-// without this we can't use add spent buttonn
 let history = localStorage.getItem("history")
     ? JSON.parse(localStorage.getItem("history"))
-    : [];  // this a fallback valuve
-    ;
+    : [];
 
-    // ================= THEME LOGIC =================
+// Formatter for Indian Rupees
+const formatCurrency = (num) => {
+    return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 2
+    }).format(num);
+};
 
-// Load saved theme
-//dark mode
-// const savedTheme = localStorage.getItem("theme");
-// if (savedTheme === "dark") {
-//     document.body.classList.add("dark");
+// ================= THEME LOGIC =================
 
-//     themeToggle.innerText = "☀️ Light Mode";
-// }
+const applyTheme = (isDark) => {
+    if (isDark) {
+        document.body.classList.add("dark-mode");
+        themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+    } else {
+        document.body.classList.remove("dark-mode");
+        themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+    }
+};
+
+let isDarkMode = localStorage.getItem("darkMode") === "true";
+applyTheme(isDarkMode);
+
+themeToggle.addEventListener("click", () => {
+    isDarkMode = !isDarkMode;
+    localStorage.setItem("darkMode", isDarkMode);
+    applyTheme(isDarkMode);
+});
 
 // ================= HELPER FUNCTIONS =================
 
-// Get date & time
-function getDateTime() { //Creates a Date object, Stores the current date & time
+// Get nicely formatted date & time
+function getDateTime() {
     const now = new Date();
-    const date = now.toLocaleDateString("en-IN", { // here localedatestring Converts date into human-readable format..nd en-IN means English (India) it wl maatch the inndiaan time style
-        day: "2-digit", //01,02,21,05
-        month: "short", //jan, feb, apr
-        year: "numeric" //2016,2003,2007
-    }); //output wl be 31 Jan 2026
+    const date = now.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    });
 
-    const time = now.toLocaleTimeString("en-IN", { //here we ignore seconds(ui)
-        hour: "2-digit",//08,07,04
-        minute: "2-digit" //15,20,60
-    });//output wl be 08:15  //it wl automotically handles AM nd PM by seeing the hour..
+    const time = now.toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
 
-    return `${date} • ${time}`; //Combine date & time , That dot • is just for nice UI separation — not required, but looks good...
+    return `${date} • ${time}`;
 }
 
 // Save to localStorage
-function saveData() { //it  wl save the data, without this app wl forget everything..
+function saveData() {
     localStorage.setItem("balance", balance);
-    localStorage.setItem("history", JSON.stringify(history)); // history is an array, localStorage cannot store arrays or objects directly,jSON.stringify()--it converts it to a string..
+    localStorage.setItem("history", JSON.stringify(history));
 }
 
 // Update balance UI
 function updateBalance() {
-    balanceEl.innerText = `₹${balance}`; //This function’s only job is to show the current balance(updated balance) on the screen.
+    balanceEl.innerText = formatCurrency(balance);
 }
-                                                                           
+
+// Render history
+function renderHistory() {
+    list.innerHTML = "";
+
+    if (history.length === 0) {
+        emptyState.classList.remove("hidden");
+        list.classList.add("hidden");
+        return;
+    }
+
+    emptyState.classList.add("hidden");
+    list.classList.remove("hidden");
+
+    // Reverse history to show newest first
+    const reversedHistory = [...history].reverse();
+
+    reversedHistory.forEach(item => {
+        const li = document.createElement("li");
+        li.classList.add("transaction-item");
+
+        li.innerHTML = `
+            <div class="item-info">
+                <span class="item-title"></span>
+                <span class="item-date">${item.dateTime}</span>
+            </div>
+            <div class="item-right">
+                <span class="item-amount">-${formatCurrency(item.amount)}</span>
+                <button class="delete-btn" title="Remove Expense" onclick="removeItem(${item.id})">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        `;
+
+        // Use textContent to prevent XSS
+        li.querySelector(".item-title").textContent = item.title;
+        list.appendChild(li);
+    });
+}
+
 // ================= CORE FEATURES =================
 
-// Set balance
+// Set initial balance
 function setBalance(e) {
     e.preventDefault();
 
-    const value = Number(initialBalanceInput.value); //it converts the balance from string to a number
+    const value = Number(initialBalanceInput.value);
 
-    if (value <= 0) { // Balance cannot be 0 or negative
-        alert("Enter a valid balance");
+    if (value <= 0) {
+        alert("Please enter a valid balance greater than 0.");
         return;
     }
 
@@ -97,7 +152,7 @@ function setBalance(e) {
     initialBalanceInput.value = "";
 }
 
-// Add spend
+// Add new expense
 function addSpend(e) {
     e.preventDefault();
 
@@ -105,12 +160,12 @@ function addSpend(e) {
     const amount = Number(amountInput.value);
 
     if (title === "" || amount <= 0) {
-        alert("Enter valid spend details");
-        return; //This protects your app from bad input.
+        alert("Please enter valid expense details.");
+        return;
     }
 
     if (amount > balance) {
-        alert("Insufficient balance"); //Prevents spending more than available balance
+        alert("Insufficient balance! You cannot spend more than your available balance.");
         return;
     }
 
@@ -131,10 +186,12 @@ function addSpend(e) {
     amountInput.value = "";
 }
 
-// Remove spend (refund)
+// Remove previously added expense
 function removeItem(id) {
     const item = history.find(h => h.id === id);
+    if (!item) return;
 
+    // Refund the amount to the balance
     balance += item.amount;
     history = history.filter(h => h.id !== id);
 
@@ -143,12 +200,10 @@ function removeItem(id) {
     renderHistory();
 }
 
-// Reset balance
-function resetBalance()
- {
-    const confirmReset = confirm
-    (
-        "Are you sure you want to reset the balance?\nThis will clear all history."
+// Fully reset app state
+function resetBalance() {
+    const confirmReset = confirm(
+        "Are you sure you want to completely reset your tracker?\nYour balance and history will be permanently deleted."
     );
 
     if (!confirmReset) return;
@@ -163,17 +218,16 @@ function resetBalance()
     renderHistory();
 }
 
-// ================= INIT =================
-function init()
- {
+// ================= INITIALIZATION =================
+function init() {
     updateBalance();
     renderHistory();
 }
 
-// Event listeners
+// Event Listeners
 balanceForm.addEventListener("submit", setBalance);
 spendForm.addEventListener("submit", addSpend);
 resetBtn.addEventListener("click", resetBalance);
 
-// Start app
+// Start
 init();
