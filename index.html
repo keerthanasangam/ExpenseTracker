@@ -19,10 +19,17 @@
     <!-- ========== PAGE 1: LANDING PAGE ========== -->
     <div id="page-landing" class="page active">
         <div class="landing-container">
-            <div class="landing-icon">
-                <i class="fa-solid fa-wallet"></i>
+            <button id="theme-toggle-landing" class="icon-btn" aria-label="Toggle Theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <div class="landing-top">
+                <div class="landing-icon">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
             </div>
-            <h1 class="landing-title">Expense Tracker</h1>
+            <div class="landing-title-wrap">
+                <h1 class="landing-title">Expense Tracker</h1>
+            </div>
             <p class="landing-subtitle">Take control of your finances. Track every rupee, effortlessly.</p>
             <div class="landing-features">
                 <div class="feature">
@@ -46,9 +53,6 @@
                     <i class="fa-solid fa-right-to-bracket"></i> Login
                 </button>
             </div>
-            <button id="theme-toggle-landing" class="icon-btn landing-theme" aria-label="Toggle Theme">
-                <i class="fa-solid fa-moon"></i>
-            </button>
         </div>
     </div>
 
@@ -70,8 +74,9 @@
                     <label for="signup-username">Username</label>
                     <div class="input-icon-wrapper">
                         <i class="fa-solid fa-user"></i>
-                        <input type="text" id="signup-username" placeholder="Choose a username" required>
+                        <input type="text" id="signup-username" placeholder="Choose a username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" title="3-20 characters. Only letters, numbers, and underscore (_)." required>
                     </div>
+                    <p class="auth-rule">Use 3–20 characters: letters, numbers, or underscore (_).</p>
                 </div>
                 <div class="form-group">
                     <label for="signup-phone">Phone Number</label>
@@ -91,11 +96,15 @@
                     <label for="signup-password">Password</label>
                     <div class="input-icon-wrapper">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="signup-password" placeholder="Min 4 characters" minlength="4" required>
+                        <input type="password" id="signup-password" placeholder="Min 8 chars with A-z, 0-9 & symbol" minlength="8" maxlength="64" title="At least 8 characters with uppercase, lowercase, number, and special symbol." required>
                     </div>
+                    <p class="auth-rule">Min 8 chars with uppercase, lowercase, number, and special symbol.</p>
                 </div>
                 <button type="submit" class="btn btn-primary btn-lg btn-full">
                     <i class="fa-solid fa-user-plus"></i> Create Account
+                </button>
+                <button type="reset" class="btn btn-outline btn-lg btn-full">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
                 <p class="auth-switch">Already have an account? <a href="#" id="goto-login">Login</a></p>
             </form>
@@ -120,18 +129,21 @@
                     <label for="login-username">Username</label>
                     <div class="input-icon-wrapper">
                         <i class="fa-solid fa-user"></i>
-                        <input type="text" id="login-username" placeholder="Your username" required>
+                        <input type="text" id="login-username" placeholder="Your username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" title="Enter a valid username (letters, numbers, underscore)." required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="login-password">Password</label>
                     <div class="input-icon-wrapper">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="login-password" placeholder="Your password" required>
+                        <input type="password" id="login-password" placeholder="Your password" minlength="8" maxlength="64" required>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-lg btn-full">
                     <i class="fa-solid fa-right-to-bracket"></i> Login
+                </button>
+                <button type="reset" class="btn btn-outline btn-lg btn-full">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
                 <p class="auth-switch">Don't have an account? <a href="#" id="goto-signup">Sign Up</a></p>
             </form>
@@ -166,6 +178,29 @@
                 </div>
                 <div class="balance-icon">
                     <i class="fa-solid fa-wallet"></i>
+                </div>
+            </section>
+
+            <!-- Budget Limit Card -->
+            <section id="budget-section" class="budget-card">
+                <div class="budget-header">
+                    <div class="budget-title">
+                        <h3><i class="fa-solid fa-bullseye"></i> Monthly Budget</h3>
+                        <span id="budget-label" class="budget-label">Not set</span>
+                    </div>
+                    <button type="button" id="set-budget-btn" class="btn btn-sm btn-outline">
+                        <i class="fa-solid fa-pen"></i> Set
+                    </button>
+                </div>
+                <div id="budget-bar-container" class="budget-bar-container hidden">
+                    <div class="budget-stats">
+                        <span>Spent: <strong id="budget-spent">₹0</strong></span>
+                        <span>Remaining: <strong id="budget-remaining">₹0</strong></span>
+                    </div>
+                    <div class="budget-bar">
+                        <div id="budget-fill" class="budget-fill" style="width: 0%"></div>
+                    </div>
+                    <p id="budget-warning" class="budget-warning hidden"></p>
                 </div>
             </section>
 
@@ -213,6 +248,26 @@
                             <div class="form-group">
                                 <label for="text" id="desc-label">Description</label>
                                 <input type="text" id="text" placeholder="e.g. Groceries, Rent..." required>
+                            </div>
+                            <div class="form-group" id="category-group">
+                                <label for="txn-category">Category</label>
+                                <select id="txn-category" class="select-input" required>
+                                    <option value="" disabled selected>Select category</option>
+                                    <option value="food">🍔 Food</option>
+                                    <option value="groceries">🛒 Groceries</option>
+                                    <option value="transport">🚗 Transport</option>
+                                    <option value="shopping">🛍️ Shopping</option>
+                                    <option value="bills">📄 Bills & Utilities</option>
+                                    <option value="rent">🏠 Rent</option>
+                                    <option value="health">💊 Health</option>
+                                    <option value="entertainment">🎬 Entertainment</option>
+                                    <option value="education">📚 Education</option>
+                                    <option value="salary">💰 Salary</option>
+                                    <option value="freelance">💼 Freelance</option>
+                                    <option value="gift">🎁 Gift</option>
+                                    <option value="refund">🔄 Refund</option>
+                                    <option value="other">📌 Other</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="amount">Amount</label>

@@ -27,8 +27,17 @@ const txnTypeInput = document.getElementById("txn-type");
 const txnSubmitBtn = document.getElementById("txn-submit-btn");
 const toggleBtns = document.querySelectorAll(".toggle-btn");
 const descLabel = document.getElementById("desc-label");
+const categorySelect = document.getElementById("txn-category");
+const categoryGroup = document.getElementById("category-group");
 const resetBtn = document.getElementById("reset-btn");
 const welcomeMsg = document.getElementById("welcome-msg");
+const setBudgetBtn = document.getElementById("set-budget-btn");
+const budgetLabel = document.getElementById("budget-label");
+const budgetBarContainer = document.getElementById("budget-bar-container");
+const budgetSpentEl = document.getElementById("budget-spent");
+const budgetRemainingEl = document.getElementById("budget-remaining");
+const budgetFill = document.getElementById("budget-fill");
+const budgetWarning = document.getElementById("budget-warning");
 
 // Auth elements
 const signupForm = document.getElementById("signup-form");
@@ -65,6 +74,10 @@ let users = localStorage.getItem("users")
 let currentUser = localStorage.getItem("currentUser")
     ? JSON.parse(localStorage.getItem("currentUser"))
     : null;
+
+let monthlyBudget = localStorage.getItem("monthlyBudget")
+    ? Number(localStorage.getItem("monthlyBudget"))
+    : 0;
 
 const formatCurrency = (num) => {
     return new Intl.NumberFormat('en-IN', {
@@ -124,6 +137,7 @@ function getDateTime() {
 function saveData() {
     localStorage.setItem("balance", balance);
     localStorage.setItem("history", JSON.stringify(history));
+    localStorage.setItem("monthlyBudget", monthlyBudget);
 }
 
 function saveAuthData() {
@@ -137,7 +151,65 @@ function saveAuthData() {
 
 function updateBalance() {
     balanceEl.innerText = formatCurrency(balance);
+    updateBudgetUI();
 }
+
+function getMonthlyExpenses() {
+    const now = new Date();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+    return history
+        .filter(item => {
+            if (item.type !== "expense") return false;
+            const d = new Date(item.id);
+            return d.getMonth() === month && d.getFullYear() === year;
+        })
+        .reduce((sum, item) => sum + item.amount, 0);
+}
+
+function updateBudgetUI() {
+    if (monthlyBudget <= 0) {
+        budgetLabel.textContent = "Not set";
+        budgetBarContainer.classList.add("hidden");
+        return;
+    }
+
+    const spent = getMonthlyExpenses();
+    const remaining = Math.max(monthlyBudget - spent, 0);
+    const pct = Math.min((spent / monthlyBudget) * 100, 100);
+
+    budgetLabel.textContent = formatCurrency(monthlyBudget);
+    budgetBarContainer.classList.remove("hidden");
+    budgetSpentEl.textContent = formatCurrency(spent);
+    budgetRemainingEl.textContent = formatCurrency(remaining);
+    budgetFill.style.width = pct + "%";
+
+    budgetFill.classList.remove("safe", "warning", "danger");
+    budgetWarning.classList.add("hidden");
+
+    if (pct >= 100) {
+        budgetFill.classList.add("danger");
+        budgetWarning.textContent = "🚨 Budget exceeded! You've overspent this month.";
+        budgetWarning.className = "budget-warning danger";
+    } else if (pct >= 80) {
+        budgetFill.classList.add("warning");
+        budgetWarning.textContent = "⚠️ Careful! You've used " + Math.round(pct) + "% of your monthly budget.";
+        budgetWarning.className = "budget-warning warning";
+    } else {
+        budgetFill.classList.add("safe");
+        budgetWarning.classList.add("hidden");
+    }
+}
+
+const categoryIcons = {
+    food: "🍔", groceries: "🛒", transport: "🚗", shopping: "🛍️",
+    bills: "📄", rent: "🏠", health: "💊", entertainment: "🎬",
+    education: "📚", salary: "💰", freelance: "💼", gift: "🎁",
+    refund: "🔄", other: "📌"
+};
+
+const usernameRule = /^[A-Za-z0-9_]{3,20}$/;
+const passwordRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,64}$/;
 
 function renderHistory() {
     list.innerHTML = "";
@@ -162,11 +234,17 @@ function renderHistory() {
 
         const sign = isIncome ? "+" : "-";
         const amountClass = isIncome ? "item-amount credit" : "item-amount";
+        const catKey = item.category || "other";
+        const catIcon = categoryIcons[catKey] || "📌";
+        const catLabel = catKey.charAt(0).toUpperCase() + catKey.slice(1);
 
         li.innerHTML = `
             <div class="item-info">
                 <span class="item-title"></span>
-                <span class="item-date">${item.dateTime}</span>
+                <span class="item-meta">
+                    <span class="item-category" data-cat="${catKey}">${catIcon} ${catLabel}</span>
+                    <span class="item-date">${item.dateTime}</span>
+                </span>
             </div>
             <div class="item-right">
                 <span class="${amountClass}">${sign}${formatCurrency(item.amount)}</span>
@@ -206,8 +284,13 @@ function handleSignUp(e) {
         return;
     }
 
-    if (password.length < 4) {
-        alert("Password must be at least 4 characters.");
+    if (!usernameRule.test(username)) {
+        alert("Username must be 3-20 characters and can only contain letters, numbers, and underscore (_).");
+        return;
+    }
+
+    if (!passwordRule.test(password)) {
+        alert("Password must be 8-64 characters and include uppercase, lowercase, number, and special symbol.");
         return;
     }
 
@@ -299,10 +382,16 @@ function addTransaction(e) {
     e.preventDefault();
     const title = textInput.value.trim();
     const amount = Number(amountInput.value);
-    const type = txnTypeInput.value; // "expense" or "income"
+    const type = txnTypeInput.value;
+    const category = categorySelect.value;
 
     if (title === "" || amount <= 0) {
         alert("Please enter valid transaction details.");
+        return;
+    }
+
+    if (!category) {
+        alert("Please select a category.");
         return;
     }
 
@@ -322,6 +411,7 @@ function addTransaction(e) {
         title,
         amount,
         type,
+        category,
         dateTime: getDateTime()
     });
 
@@ -330,6 +420,7 @@ function addTransaction(e) {
     renderHistory();
     textInput.value = "";
     amountInput.value = "";
+    categorySelect.value = "";
 }
 
 function removeItem(id) {
@@ -357,9 +448,11 @@ function resetBalance() {
 
     balance = 0;
     history = [];
+    monthlyBudget = 0;
 
     localStorage.removeItem("balance");
     localStorage.removeItem("history");
+    localStorage.removeItem("monthlyBudget");
 
     updateBalance();
     renderHistory();
@@ -411,6 +504,19 @@ toggleBtns.forEach(btn => {
     });
 });
 resetBtn.addEventListener("click", resetBalance);
+
+setBudgetBtn.addEventListener("click", () => {
+    const input = prompt("Set your monthly spending limit (₹):", monthlyBudget || "");
+    if (input === null) return;
+    const value = Number(input);
+    if (isNaN(value) || value < 0) {
+        alert("Please enter a valid amount.");
+        return;
+    }
+    monthlyBudget = value;
+    saveData();
+    updateBudgetUI();
+});
 
 // ================= INITIALIZATION =================
 

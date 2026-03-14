@@ -51,8 +51,8 @@ body.dark-mode {
 }
 
 * {
-    margin: 0;
-    padding: 0;
+    margin: 0; /* Remove default browser margins from all elements */
+    padding: 0; /* Remove default padding from all elements */
     box-sizing: border-box;
 }
 
@@ -88,9 +88,37 @@ body {
    LANDING PAGE
    ========================================= */
 .landing-container {
+    position: relative;
     text-align: center;
     max-width: 540px;
     padding: 40px 24px;
+}
+
+.landing-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.landing-top .landing-icon {
+    margin-bottom: 0;
+}
+
+.landing-title-wrap {
+    position: relative;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+#theme-toggle-landing {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 15px;
+    transform: none;
 }
 
 .landing-icon {
@@ -178,10 +206,6 @@ body.dark-mode .feature i {
 
 .btn-full {
     width: 100%;
-}
-
-.landing-theme {
-    margin-top: 32px;
 }
 
 /* =========================================
@@ -292,6 +316,13 @@ body.dark-mode .feature i {
     font-size: 14px;
     color: var(--text-muted);
     margin-top: 8px;
+}
+
+.auth-rule {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
 }
 
 .auth-switch a {
@@ -417,6 +448,123 @@ body.dark-mode .feature i {
     overflow: hidden;
 }
 
+/* =========================================
+   BUDGET LIMIT CARD
+   ========================================= */
+.budget-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.budget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.budget-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.budget-title h3 {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+
+.budget-title h3 i {
+    color: var(--primary);
+}
+
+.budget-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    background: rgba(79, 70, 229, 0.1);
+    padding: 4px 12px;
+    border-radius: 999px;
+}
+
+body.dark-mode .budget-label {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.btn-sm {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+.budget-bar-container {
+    margin-top: 16px;
+}
+
+.budget-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.budget-stats strong {
+    color: var(--text-main);
+}
+
+.budget-bar {
+    width: 100%;
+    height: 10px;
+    background: var(--bg-color);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.budget-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.5s ease, background 0.3s ease;
+}
+
+.budget-fill.safe {
+    background: linear-gradient(90deg, var(--success), #34d399);
+}
+
+.budget-fill.warning {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.budget-fill.danger {
+    background: linear-gradient(90deg, var(--danger), #f87171);
+}
+
+.budget-warning {
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+}
+
+.budget-warning.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+}
+
+.budget-warning.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
 .balance-card::after {
     content: '';
     position: absolute;
@@ -536,7 +684,8 @@ input[type="text"],
 input[type="number"],
 input[type="email"],
 input[type="password"],
-input[type="tel"] {
+input[type="tel"],
+select.select-input {
     width: 100%;
     padding: 12px 14px;
     border: 1.5px solid var(--border-color);
@@ -546,6 +695,23 @@ input[type="tel"] {
     font-family: inherit;
     font-size: 16px;
     transition: var(--transition);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.input-icon-wrapper input[type="text"],
+.input-icon-wrapper input[type="email"],
+.input-icon-wrapper input[type="password"],
+.input-icon-wrapper input[type="tel"] {
+    padding-left: 40px;
+}
+
+select.select-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
 }
 
 .input-wrapper input {
@@ -728,7 +894,44 @@ body.dark-mode .btn-danger:hover {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-width: 0;
 }
+
+.item-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.item-category {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(79, 70, 229, 0.1);
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+body.dark-mode .item-category {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.item-category[data-cat="food"]         { background: rgba(249, 115, 22, 0.12); color: #ea580c; }
+.item-category[data-cat="groceries"]    { background: rgba(34, 197, 94, 0.12); color: #16a34a; }
+.item-category[data-cat="transport"]    { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
+.item-category[data-cat="shopping"]     { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
+.item-category[data-cat="bills"]        { background: rgba(234, 179, 8, 0.12); color: #ca8a04; }
+.item-category[data-cat="rent"]         { background: rgba(107, 114, 128, 0.12); color: #4b5563; }
+.item-category[data-cat="health"]       { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+.item-category[data-cat="entertainment"]{ background: rgba(236, 72, 153, 0.12); color: #db2777; }
+.item-category[data-cat="education"]    { background: rgba(14, 165, 233, 0.12); color: #0284c7; }
+.item-category[data-cat="salary"]       { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.item-category[data-cat="freelance"]    { background: rgba(79, 70, 229, 0.12); color: #4f46e5; }
+.item-category[data-cat="gift"]         { background: rgba(244, 63, 94, 0.12); color: #e11d48; }
+.item-category[data-cat="refund"]       { background: rgba(20, 184, 166, 0.12); color: #0d9488; }
+.item-category[data-cat="other"]        { background: rgba(100, 116, 139, 0.12); color: #475569; }
 
 .item-title {
     font-weight: 600;
